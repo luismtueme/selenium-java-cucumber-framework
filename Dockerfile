@@ -1,7 +1,7 @@
 # Test runner image: JDK, Maven and every dependency, cached in a layer so code changes rebuild fast.
 # Browsers run in the Selenium Grid container (see docker-compose.yml), not here.
 # Keep the Java version in step with <java.version> in pom.xml (ConsistencyTest checks).
-FROM maven:3.9.16-eclipse-temurin-25
+FROM maven:3-eclipse-temurin-26
 
 WORKDIR /app
 
