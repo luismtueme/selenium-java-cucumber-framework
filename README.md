@@ -4,6 +4,8 @@ UI, API and database test automation with [Selenium WebDriver](https://www.selen
 
 Built on Java 25, Selenium 4.50, Cucumber-JVM 8 and JUnit 6. It has the same design, demo app and scenarios as [playwright-cucumber-typescript-framework](https://github.com/luismtueme/playwright-cucumber-typescript-framework), adapted to Selenium and the Java toolchain.
 
+New here? Start with the [run guide](docs/GUIDE.md): setup, running, a worked example and troubleshooting.
+
 [![Selenium Tests](https://github.com/luismtueme/selenium-java-cucumber-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/luismtueme/selenium-java-cucumber-framework/actions/workflows/ci.yml) · [Latest Cucumber report](https://luismtueme.github.io/selenium-java-cucumber-framework/)
 
 ## Which repo should I use?

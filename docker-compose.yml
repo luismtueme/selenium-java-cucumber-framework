@@ -2,15 +2,15 @@
 # with Chrome, and the test runner.
 #
 #   docker compose run --build --rm tests          run every scenario
-#   docker compose run --build --rm tests mvn -B verify -DskipUnitTests=true -Dcucumber.filter.tags=@Smoke
+#   docker compose run --build --rm tests mvn -B verify -DskipUnitTests=true -Dcucumber.report=reports/cucumber-report.html -Dcucumber.filter.tags=@Smoke
 #   docker compose down -v                          stop everything and remove the database
 #
 # Watch the browser live at http://localhost:7900 (password: secret).
-# Allure results are written back to ./target/docker-allure-results; view them with
-#   ./mvnw allure:serve -Dallure.results.directory=target/docker-allure-results
+# The Cucumber report is written back to ./target/docker-reports/cucumber-report.html.
 services:
   tests:
     build: .
+    command: ['mvn', '-B', 'verify', '-DskipUnitTests=true', '-Dcucumber.report=reports/cucumber-report.html']
     depends_on:
       demo-app:
         condition: service_healthy
@@ -30,7 +30,7 @@ services:
       DB_PASSWORD: tester-password
       DB_NAME: testdb
     volumes:
-      - ./target/docker-allure-results:/app/target/allure-results
+      - ./target/docker-reports:/app/reports
 
   demo-app:
     build: .
