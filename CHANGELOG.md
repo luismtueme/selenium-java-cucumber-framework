@@ -4,6 +4,12 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+- Run guide (`docs/GUIDE.md`): setup on every OS, running and debugging, a worked example that adds a page end to end, pointing the framework at your own app, troubleshooting and a command cheat sheet.
+
+### Fixed
+- Docker Compose writes the Cucumber report to `target/docker-reports/` on the host. It still pointed at the removed Allure results folder, so the report stayed inside the container.
+
 ## [1.0.0] - 2026-10-01
 
 Java and Selenium version of [playwright-cucumber-typescript-framework](https://github.com/luismtueme/playwright-cucumber-typescript-framework), with the same demo app and scenarios.
