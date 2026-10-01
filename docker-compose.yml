@@ -1,0 +1,77 @@
+# Full test environment, nothing to install but Docker: the demo app, MySQL, a Selenium Grid
+# with Chrome, and the test runner.
+#
+#   docker compose run --build --rm tests          run every scenario
+#   docker compose run --build --rm tests mvn -B verify -DskipUnitTests=true -Dcucumber.filter.tags=@Smoke
+#   docker compose down -v                          stop everything and remove the database
+#
+# Watch the browser live at http://localhost:7900 (password: secret).
+# Allure results are written back to ./target/docker-allure-results; view them with
+#   ./mvnw allure:serve -Dallure.results.directory=target/docker-allure-results
+services:
+  tests:
+    build: .
+    depends_on:
+      demo-app:
+        condition: service_healthy
+      chrome:
+        condition: service_healthy
+    environment:
+      CI: 'true'
+      TEST_ENV: docker
+      BASE_URL: http://demo-app:4173
+      # The demo app's built-in login. For a real app, pass your own test account.
+      APP_USERNAME: demo-user
+      APP_PASSWORD: demo-password
+      SELENIUM_REMOTE_URL: http://chrome:4444
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      DB_USER: tester
+      DB_PASSWORD: tester-password
+      DB_NAME: testdb
+    volumes:
+      - ./target/docker-allure-results:/app/target/allure-results
+
+  demo-app:
+    build: .
+    command: ['mvn', '-B', '-q', 'exec:java']
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DEMO_APP_HOST: 0.0.0.0
+      DEMO_APP_PORT: '4173'
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      DB_USER: tester
+      DB_PASSWORD: tester-password
+      DB_NAME: testdb
+    healthcheck:
+      test: ['CMD', 'bash', '-c', 'echo > /dev/tcp/127.0.0.1/4173']
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  chrome:
+    image: selenium/standalone-chrome:4.49.0-20260909
+    shm_size: 2gb
+    ports:
+      - '7900:7900'
+    healthcheck:
+      test: ['CMD', 'curl', '-sf', 'http://localhost:4444/status']
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root-password
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: tester
+      MYSQL_PASSWORD: tester-password
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot-password']
+      interval: 5s
+      timeout: 5s
+      retries: 20

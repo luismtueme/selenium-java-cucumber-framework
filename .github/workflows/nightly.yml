@@ -1,0 +1,51 @@
+name: Nightly Cross-Browser
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Keep in step with <java.version> in pom.xml (ConsistencyTest checks)
+  JAVA_VERSION: '25'
+
+jobs:
+  cross-browser:
+    name: ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+    env:
+      CI: true
+      TEST_ENV: nightly
+      TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      # Selenium Manager finds the runner's browser, or downloads it, with the matching driver
+      - name: Run Cucumber Scenarios
+        run: ./mvnw -B verify -DskipUnitTests=true
+
+      - name: Upload Cucumber Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: cucumber-report-${{ matrix.browser }}
+          path: |
+            target/cucumber-report.html
+            target/failsafe-reports/
+          retention-days: 14

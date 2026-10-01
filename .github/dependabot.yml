@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Maven dependencies and plugins: one grouped PR for minor/patch updates, majors stay separate
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      maven-minor-and-patch:
+        update-types: [minor, patch]
+
+  # GitHub Actions used in .github/workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']
+
+  # Base images: the test runner (Dockerfile) and the Grid, MySQL images (docker-compose.yml).
+  # When the maven image's Java version changes, update <java.version> too (ConsistencyTest checks).
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly

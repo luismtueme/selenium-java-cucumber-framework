@@ -1,0 +1,158 @@
+name: Selenium Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege by default; jobs that need more ask for it explicitly
+permissions:
+  contents: read
+
+# A newer push to the same PR cancels the older run; runs on main always finish
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Keep in step with <java.version> in pom.xml (ConsistencyTest checks)
+  JAVA_VERSION: '25'
+
+jobs:
+  # Fast gate, no browser: formatting, compiler warnings, framework unit tests with coverage,
+  # architecture rules, Gherkin lint, and a Cucumber dry run (every step defined exactly once)
+  check:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build, Unit Tests and Lint
+        run: ./mvnw -B verify -DskipITs
+
+      - name: Validate Step Definitions (dry run)
+        run: ./mvnw -B verify -Pcheck
+
+      - name: Upload Coverage Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-coverage
+          path: target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  test:
+    name: Tests
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # A real MySQL so the @db scenarios run; the demo app stores items in it
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: tester
+          MYSQL_PASSWORD: ci-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-root"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      CI: true
+      TEST_ENV: ci
+      TEST_BROWSER: chrome
+      # Throwaway CI database. For a real app, read credentials from secrets:
+      #   APP_USERNAME: ${{ secrets.APP_USERNAME }}
+      #   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: tester
+      DB_PASSWORD: ci-password
+      DB_NAME: testdb
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      # Includes the check that no scenario left test data behind (an @AfterAll hook)
+      - name: Run Cucumber Scenarios
+        run: ./mvnw -B verify -DskipUnitTests=true
+
+      # Flaky scenarios tagged @quarantine run here: results reach the report, but never fail the job
+      - name: Run Quarantined Scenarios (non-blocking)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: ./mvnw -B verify -Pquarantine
+
+      - name: Upload Test Artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-artifacts
+          path: |
+            target/cucumber-report.html
+            target/cucumber-quarantine-report.html
+            target/failsafe-reports/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Publishes the Cucumber report to GitHub Pages, only for pushes to main (never for PRs)
+  report:
+    name: Publish Cucumber Report
+    needs: test
+    if: ${{ !cancelled() && needs.test.result != 'skipped' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Download Test Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: test-artifacts
+          path: target/
+
+      - name: Build Site
+        run: |
+          mkdir -p _site
+          cp target/cucumber-report.html _site/index.html
+          if [ -f target/cucumber-quarantine-report.html ]; then
+            cp target/cucumber-quarantine-report.html _site/quarantine.html
+          fi
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
