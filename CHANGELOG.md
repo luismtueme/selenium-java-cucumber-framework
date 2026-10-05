@@ -9,6 +9,7 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 
 ### Fixed
 - Docker Compose writes the Cucumber report to `target/docker-reports/` on the host. It still pointed at the removed Allure results folder, so the report stayed inside the container.
+- Nightly Edge: Chromium headless now uses `--headless=new` plus `--no-sandbox` and `--disable-dev-shm-usage`. Old `--headless` made Edge on GitHub-hosted Linux exit before a session started; Chrome and Firefox were unaffected.
 
 ## [1.0.0] - 2026-10-01
 
