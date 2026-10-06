@@ -65,7 +65,14 @@ public final class DriverFactory {
     private static <T extends ChromiumOptions<?>> T chromium(T options, Config config) {
         options.enableBiDi();
         options.addArguments("--window-size=%d,%d".formatted(config.windowWidth(), config.windowHeight()));
-        if (config.headless()) options.addArguments("--headless");
+        if (config.headless()) {
+            // Old --headless (the headless shell) makes Edge on Linux exit immediately ("Chrome instance
+            // exited") when BiDi is on. --headless=new is the current Chromium headless for Chrome and Edge.
+            options.addArguments("--headless=new");
+            // GitHub-hosted runners (and Docker) have a small /dev/shm and no user namespace for the sandbox.
+            // Selenium Manager's Edge build dies without these; Chrome on the runner image often survives.
+            options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        }
         // No "save password" or "password found in a data breach" dialogs over the page under test
         options.setExperimentalOption(
                 "prefs",
