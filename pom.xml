@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <selenium.version>4.50.0</selenium.version>
-        <cucumber.version>8.0.3</cucumber.version>
+        <cucumber.version>8.0.4</cucumber.version>
         <junit.version>6.1.3</junit.version>
         <axe.version>4.13.0</axe.version>
         <rest-assured.version>6.0.1</rest-assured.version>
@@ -33,7 +33,7 @@
         <awaitility.version>4.3.0</awaitility.version>
         <archunit.version>1.5.1</archunit.version>
         <dotenv.version>3.2.0</dotenv.version>
-        <slf4j.version>2.0.17</slf4j.version>
+        <slf4j.version>2.0.20</slf4j.version>
         <palantir-java-format.version>2.100.0</palantir-java-format.version>
 
         <!-- Runner settings, overridable on the command line: -Dworkers=2 -Dretries=1 -->
