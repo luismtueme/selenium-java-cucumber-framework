@@ -4,6 +4,9 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Changed
+- README: the repo list includes all six frameworks.
+
 ### Added
 - Run guide (`docs/GUIDE.md`): setup on every OS, running and debugging, a worked example that adds a page end to end, pointing the framework at your own app, troubleshooting and a command cheat sheet.
 
