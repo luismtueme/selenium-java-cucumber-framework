@@ -10,7 +10,7 @@ New here? Start with the [run guide](docs/GUIDE.md): setup, running, a worked ex
 
 ## Which repo should I use?
 
-This is one of four versions of the same framework. They share the design, the demo app and the scenarios.
+This is one of six frameworks.
 
 | Repository | Tests are written as | Stack | Choose it when |
 |---|---|---|---|
@@ -18,6 +18,8 @@ This is one of four versions of the same framework. They share the design, the d
 | [playwright-cucumber-typescript-framework](https://github.com/luismtueme/playwright-cucumber-typescript-framework) | Gherkin scenarios and Playwright specs | TypeScript, Playwright | Product owners, analysts or manual QA read or write scenarios, and the team works in TypeScript |
 | [playwright-typescript-framework](https://github.com/luismtueme/playwright-typescript-framework) | Playwright specs | TypeScript, Playwright | Engineers write and read the tests. The most features and the simplest toolchain |
 | [playwright-cucumber-automation-framework](https://github.com/luismtueme/playwright-cucumber-automation-framework) | Gherkin scenarios and Playwright specs | JavaScript, Playwright | You want Cucumber without a TypeScript toolchain |
+| [playwright-python-framework](https://github.com/luismtueme/playwright-python-framework) | Pytest | Python, Playwright | The same Playwright checks, without Node |
+| [appium-java-cucumber-framework](https://github.com/luismtueme/appium-java-cucumber-framework) | Gherkin scenarios and JUnit specs | Java, Appium | Native Android and iOS |
 
 ## What's included
 
@@ -292,7 +294,8 @@ JUnit XML for every scenario is in `target/failsafe-reports/`. In CI, the report
 | Checks | Compile with warnings as errors, Spotless, framework unit tests with a coverage threshold, ArchUnit rules, Gherkin lint, version consistency, Cucumber dry run |
 | Tests | Every scenario in headless Chrome against the demo app, backed by a MySQL service container, with the leftover-data check. Then quarantined scenarios (non-blocking) |
 | Publish Cucumber Report | On `main` only: deploys the report to GitHub Pages |
-| Nightly Cross-Browser | Daily at 06:00 UTC (and on demand): every scenario on Chrome, Firefox and Edge. Not required to merge |
+
+`.github/workflows/nightly.yml` is a separate workflow. It runs daily at 06:00 UTC and on demand: every scenario on Chrome, Firefox, and Edge. It does not run on pull requests, and it is not required to merge.
 
 Dependabot opens weekly update PRs for Maven dependencies, GitHub Actions and Docker images. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to make changes, and [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
