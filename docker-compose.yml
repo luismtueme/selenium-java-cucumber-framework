@@ -53,7 +53,7 @@ services:
       retries: 40
 
   chrome:
-    image: selenium/standalone-chrome:4.49.0-20260909
+    image: selenium/standalone-chrome:155.0.8059.39-20261010
     shm_size: 2gb
     ports:
       - '7900:7900'
